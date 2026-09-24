@@ -1,0 +1,122 @@
+==============================================================================
+MODULE 2 - PART B: PREDICTIVE MODELING
+==============================================================================
+[load] pd.read_csv('titanic.csv') -> (891, 15)
+[load] NOTE: sns.load_dataset is NOT called here; the raw dataset was loaded exactly once in 01_eda.py.
+
+==============================================================================
+TASK 7 - STRATIFIED TRAIN/TEST SPLIT
+==============================================================================
+class balance in full data: died(0) = 0.6162 (549), survived(1) = 0.3838 (342)
+JUSTIFICATION: the classes are imbalanced (~38.4% survived vs ~61.6% died). A plain random split can, by chance, put a noticeably different survival ratio in test than in train - which both adds variance to every metric and makes the three models' scores less comparable. stratify=df['survived'] guarantees train and test each preserve the ~38/62 split, so metrics are measured on the same class distribution for all three classifiers.
+
+train: 712 rows, test: 179 rows
+train survival rate: 0.3834   test survival rate: 0.3855
+train NaNs (handled later by pipeline imputers): 139, test NaNs: 40
+
+==============================================================================
+TASK 8 - PREPROCESSING (fit on train, transform on test)
+==============================================================================
+Choice for missing values inside the modeling pipeline: numeric -> median, categorical -> most_frequent, both learned from TRAIN only. (Does not have to match Task 2 exactly: Task 2 dropped the 2 missing-embarked rows for EDA; here we keep every row and let the imputer fill them, which is leak-safe because the imputer is fit on the train split only.)
+Encoding: OneHotEncoder on sex + embarked (handle_unknown='ignore').
+Scaling: StandardScaler on pclass, age, sibsp, parch, fare.
+All steps live inside a ColumnTransformer wrapped in the model Pipeline => structurally impossible to refit on test.
+
+==============================================================================
+TASK 9 - THREE CLASSIFIERS, SAME TRAIN/TEST SPLIT
+==============================================================================
+
+--- Logistic Regression ---
+confusion matrix (rows=true, cols=pred) [[TN FP][FN TP]]:
+[[98 12]
+ [23 46]]
+accuracy=0.8045  precision=0.7931 recall=0.6667  f1=0.7244  auc=0.8437
+
+--- Decision Tree ---
+confusion matrix (rows=true, cols=pred) [[TN FP][FN TP]]:
+[[97 13]
+ [20 49]]
+accuracy=0.8156  precision=0.7903 recall=0.7101  f1=0.7481  auc=0.7904
+
+--- Random Forest ---
+confusion matrix (rows=true, cols=pred) [[TN FP][FN TP]]:
+[[98 12]
+ [21 48]]
+accuracy=0.8156  precision=0.8000 recall=0.6957  f1=0.7442  auc=0.8300
+
+--- SIDE-BY-SIDE COMPARISON TABLE (Task 9) ---
+              model  accuracy  precision  recall     f1    auc
+Logistic Regression    0.8045     0.7931  0.6667 0.7244 0.8437
+      Decision Tree    0.8156     0.7903  0.7101 0.7481 0.7904
+      Random Forest    0.8156     0.8000  0.6957 0.7442 0.8300
+[chart] confusion_matrices.png -> C:\Users\Hello\Downloads\Masai\analytics\charts
+[chart] roc_curves.png -> C:\Users\Hello\Downloads\Masai\analytics\charts
+[chart] decision_tree.png -> C:\Users\Hello\Downloads\Masai\analytics\charts  (full tree fitted; top 3 levels rendered with feature_names + class_names)
+TASK 10 - IMBALANCE HANDLING (baseline vs balanced vs SMOTE)
+==============================================================================
+class balance (full data):
+  not survived (0): 549 (0.6162)
+  survived     (1): 342 (0.3838)
+Model used for this comparison: Logistic Regression (same split, same preprocessing).
+
+--- imbalance comparison (precision / recall / F1) ---
+                    variant  precision  recall     f1  accuracy    auc
+ (a) baseline (no handling)     0.7931  0.6667 0.7244    0.8045 0.8437
+(b) class_weight='balanced'     0.7297  0.7826 0.7552    0.8045 0.8464
+(c) SMOTE (train fold only)     0.7397  0.7826 0.7606    0.8101 0.8414
+
+CONCLUSION: best F1 = 0.7606 for '(c) SMOTE (train fold only)'.
+  baseline      : P=0.7931 R=0.6667 F1=0.7244
+  (b) class_weight='balanced': P=0.7297 R=0.7826 F1=0.7552
+  (c) SMOTE (train fold only): P=0.7397 R=0.7826 F1=0.7606
+  Reading: the majority class dominates the baseline, so the model is conservative about predicting 'survived' (decent precision, weaker recall). class_weight='balanced' and SMOTE both shift the decision boundary toward the minority class: recall rises, precision gives a little back, and F1 improves. SMOTE synthesises minority examples rather than only re-weighting, so it typically gains a bit more recall than class_weight while keeping precision close. Both imbalance strategies beat the baseline on F1; whichever of the two has the higher F1 above is the better strategy for this split.
+
+==============================================================================
+TASK 11 - GridSearchCV over RandomForest + OOB score
+==============================================================================
+best parameters: {'max_depth': 5, 'max_features': 'sqrt', 'n_estimators': 100}
+best CV accuracy (GridSearchCV): 0.8231
+test accuracy of best estimator: 0.8156
+estimator already constructed with oob_score=True: oob_score flag = True
+OOB score of the tuned RandomForest = 0.8272
+
+==============================================================================
+TASK 12 - REGRESSION SIDE-TASK: predict fare
+==============================================================================
+Target: fare. Features: pclass, sex, age, sibsp, parch, embarked (all other available non-fare columns used as predictors; deck/who/alive/alone/adult_male/class/embark_town are duplicates or target-derived).
+
+MAE  = 20.8094
+RMSE = 30.4731
+R^2  = 0.3999
+Adjusted R^2 = 0.3679   (n=179, k=9 coefficients)
+[chart] regression_residuals.png -> C:\Users\Hello\Downloads\Masai\analytics\charts
+residual std by predicted-fare tercile (low/mid/high): 7.54 / 12.82 / 44.82
+HETEROSCEDASTICITY CONCLUSION: the residual plot shows NON-RANDOM (fan-shaped) spread - residual variance grows as predicted fare increases (tercile stds above rise from ~7.5 to ~44.8). This is heteroscedasticity: cheap fares are predicted tightly, while expensive 1st-class fares scatter widely. The pattern is expected for right-skewed fare data and means OLS coefficient standard errors (but not the predictions themselves here) should be interpreted with care.
+
+==============================================================================
+TASK 13 - FINAL MODEL COMPARISON TABLE
+==============================================================================
+Classification metrics and regression metrics are DIFFERENT scales / different targets;
+they are shown as two distinct metric groups, never merged onto one shared scale.
+
+              model                      metric_group  accuracy  precision  recall     f1    auc     mae    rmse     r2  adj_r2
+Logistic Regression classification (target: survived)    0.8045     0.7931  0.6667 0.7244 0.8437     NaN     NaN    NaN     NaN
+      Decision Tree classification (target: survived)    0.8156     0.7903  0.7101 0.7481 0.7904     NaN     NaN    NaN     NaN
+      Random Forest classification (target: survived)    0.8156     0.8000  0.6957 0.7442 0.8300     NaN     NaN    NaN     NaN
+  Linear Regression         regression (target: fare)       NaN        NaN     NaN    NaN    NaN 20.8094 30.4731 0.3999  0.3679
+[saved] model_comparison.csv -> C:\Users\Hello\Downloads\Masai\analytics
+
+RECOMMENDATION (3-5 sentences):
+I would deploy Logistic Regression, which has the highest ROC-AUC of the three classifiers (0.8437) at an accuracy of 0.8045, meaning it ranks survivors above victims more consistently than the alternatives and remains robust under the ~38/62 class imbalance. Random Forest is a close second on discrimination (AUC 0.83, accuracy 0.8156, F1 0.7442) but adds complexity for no real AUC gain, while the bare Decision Tree has the weakest AUC of the three (0.7904) despite its slightly higher F1 (0.7481), the classic sign of a fit to this particular split rather than stable signal. Logistic Regression's recall can be traded up when needed - with class_weight='balanced' the same model family already reaches F1 0.7552 - so its lower baseline recall (0.6667) is a tuning choice, not a defect. If tree-based explanations were mandated, Random Forest with its GridSearchCV-best parameters {'max_depth': 5, 'max_features': 'sqrt', 'n_estimators': 100} and OOB score 0.8272 would be the fallback. The regression side-task (MAE 20.81, RMSE 30.47, R2 0.400) is reported in its own metric group because it predicts a different target on a different scale and is not comparable to the classification metrics.
+
+==============================================================================
+TASK 14 - SAVE / RELOAD FULL PIPELINE
+==============================================================================
+joblib.dump(full_pipeline = preprocessing + estimator) -> C:\Users\Hello\Downloads\Masai\analytics\best_pipeline.joblib
+joblib.load -> type=Pipeline, steps=['preprocess', 'clf']
+raw input (unpreprocessed, contains NaNs):
+ pclass    sex  age  sibsp  parch  fare embarked
+      1 female  NaN      0      0 80.00        S
+      3   male 22.0      1      0  8.05      NaN
+predictions on raw input: [1, 0]  (expected roughly [1, 0] - 1st-class female / 3rd-class male)
+RELOAD CHECK PASSED: artifact works end-to-end on raw data.

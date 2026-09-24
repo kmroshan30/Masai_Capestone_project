@@ -1,0 +1,181 @@
+==============================================================================
+TASK 1 - LOAD + PROFILE  (this is the module's ONLY raw load)
+==============================================================================
+[load] sns.load_dataset('titanic') -> shape (891, 15)
+[load] saved offline fallback -> C:\Users\Hello\Downloads\Masai\analytics\titanic.csv
+
+--- df.info() ---
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 891 entries, 0 to 890
+Data columns (total 15 columns):
+ #   Column       Non-Null Count  Dtype   
+---  ------       --------------  -----   
+ 0   survived     891 non-null    int64   
+ 1   pclass       891 non-null    int64   
+ 2   sex          891 non-null    object  
+ 3   age          714 non-null    float64 
+ 4   sibsp        891 non-null    int64   
+ 5   parch        891 non-null    int64   
+ 6   fare         891 non-null    float64 
+ 7   embarked     889 non-null    object  
+ 8   class        891 non-null    category
+ 9   who          891 non-null    object  
+ 10  adult_male   891 non-null    bool    
+ 11  deck         203 non-null    category
+ 12  embark_town  889 non-null    object  
+ 13  alive        891 non-null    object  
+ 14  alone        891 non-null    bool    
+dtypes: bool(2), category(2), float64(2), int64(4), object(5)
+memory usage: 80.7+ KB
+
+--- df.describe() ---
+         survived      pclass         age       sibsp       parch        fare
+count  891.000000  891.000000  714.000000  891.000000  891.000000  891.000000
+mean     0.383838    2.308642   29.699118    0.523008    0.381594   32.204208
+std      0.486592    0.836071   14.526497    1.102743    0.806057   49.693429
+min      0.000000    1.000000    0.420000    0.000000    0.000000    0.000000
+25%      0.000000    2.000000   20.125000    0.000000    0.000000    7.910400
+50%      0.000000    3.000000   28.000000    0.000000    0.000000   14.454200
+75%      1.000000    3.000000   38.000000    1.000000    0.000000   31.000000
+max      1.000000    3.000000   80.000000    8.000000    6.000000  512.329200
+
+--- df.shape ---
+(891, 15)
+
+--- missing values (columns with any) ---
+  age         :  177 missing =  19.87%
+  embarked    :    2 missing =   0.22%
+  deck        :  688 missing =  77.22%
+  embark_town :    2 missing =   0.22%
+
+==============================================================================
+TASK 2 - MISSING-VALUE HANDLING (threshold rule)
+==============================================================================
+Rule: <5% missing -> drop those rows; 5%-30% -> impute;
+      missing rate too high for reliable imputation -> drop the
+      column OR encode 'missing' as its own category (justified).
+
+embarked    : 2 missing = 0.22%  -> <5% => DROP those rows
+embark_town : 2 missing = 0.22%  -> <5% => DROP those rows
+  dropped 2 rows (both columns miss on the same 2 passengers); frame now 889 rows
+age         : 177 missing = 19.87%  -> 5%-30% => IMPUTE with median age = 28.0
+deck        : 688 missing = 77.22%  -> far above 30% => imputation unreliable.
+  DECISION: keep the column and encode 'Missing' as its own
+  category (deck = 'Unknown'), rather than dropping the column.
+  JUSTIFICATION: mode/median imputation would stamp a single
+  fabricated deck (e.g. 'C') onto ~77% of passengers, creating
+  false precision and erasing the real pattern that deck was
+  recorded mainly for higher-class passengers. Missingness here
+  is informative (it tracks socio-economic status), so 'Unknown'
+  preserves that signal, and dropping the column would throw
+  away a feature that is genuinely associated with survival.
+
+[clean] final cleaned frame: (889, 15), remaining NaN: 0
+[clean] saved -> C:\Users\Hello\Downloads\Masai\analytics\titanic_cleaned.csv
+
+==============================================================================
+TASK 3 - UNIVARIATE ANALYSIS
+==============================================================================
+[chart] univariate_age_fare.png -> C:\Users\Hello\Downloads\Masai\analytics\charts
+IQR outliers in age: Q1=22.00, Q3=35.00, IQR=13.00, fences=[2.50, 54.50] -> 65 outliers (7.31%)
+IQR outliers in fare: Q1=7.90, Q3=31.00, IQR=23.10, fences=[-26.76, 65.66] -> 114 outliers (12.82%)
+
+fare mean   = 32.0967
+fare median = 14.4542
+fare mode   = 8.0500
+fare skewness (pandas .skew()) = 4.8014
+SKEWNESS CONCLUSION: fare is RIGHT-SKEWED. The ordering
+  mean (32.10) > median (14.45) > mode (8.05)
+  is the classic right-skew signature: a long tail of expensive
+  tickets pulls the mean above the median, while the most common
+  fare is the cheapest cluster near the bottom of the range.
+
+==============================================================================
+TASK 4 - BIVARIATE ANALYSIS (boolean masking)
+==============================================================================
+(a) survival rate by sex:
+    female: 0.7404 (231/312)
+    male  : 0.1889 (109/577)
+(b) survival rate by pclass:
+    pclass=1: 0.6262 (134/214)
+    pclass=2: 0.4728 (87/184)
+    pclass=3: 0.2424 (119/491)
+(c) survival rate by sex AND pclass:
+    pclass=1 female: 0.9674 (89/92)
+    pclass=1 male  : 0.3689 (45/122)
+    pclass=2 female: 0.9211 (70/76)
+    pclass=2 male  : 0.1574 (17/108)
+    pclass=3 female: 0.5000 (72/144)
+    pclass=3 male  : 0.1354 (47/347)
+
+Correlation matrix (exactly 6 columns: survived, pclass, age, sibsp, parch, fare;
+adult_male and alone EXCLUDED - derived/redundant flags):
+          survived  pclass     age   sibsp   parch    fare
+survived    1.0000 -0.3355 -0.0698 -0.0340  0.0832  0.2553
+pclass     -0.3355  1.0000 -0.3365  0.0817  0.0168 -0.5482
+age        -0.0698 -0.3365  1.0000 -0.2325 -0.1715  0.0937
+sibsp      -0.0340  0.0817 -0.2325  1.0000  0.4145  0.1609
+parch       0.0832  0.0168 -0.1715  0.4145  1.0000  0.2175
+fare        0.2553 -0.5482  0.0937  0.1609  0.2175  1.0000
+
+All off-diagonal pairs ranked by |correlation|:
+     pclass ~ fare     : r = -0.5482  |r| = 0.5482
+      sibsp ~ parch    : r = +0.4145  |r| = 0.4145
+     pclass ~ age      : r = -0.3365  |r| = 0.3365
+   survived ~ pclass   : r = -0.3355  |r| = 0.3355
+   survived ~ fare     : r = +0.2553  |r| = 0.2553
+        age ~ sibsp    : r = -0.2325  |r| = 0.2325
+      parch ~ fare     : r = +0.2175  |r| = 0.2175
+        age ~ parch    : r = -0.1715  |r| = 0.1715
+      sibsp ~ fare     : r = +0.1609  |r| = 0.1609
+        age ~ fare     : r = +0.0937  |r| = 0.0937
+   survived ~ parch    : r = +0.0832  |r| = 0.0832
+     pclass ~ sibsp    : r = +0.0817  |r| = 0.0817
+   survived ~ age      : r = -0.0698  |r| = 0.0698
+   survived ~ sibsp    : r = -0.0340  |r| = 0.0340
+     pclass ~ parch    : r = +0.0168  |r| = 0.0168
+
+TWO STRONGEST CORRELATIONS (largest |off-diagonal r|):
+  1) pclass ~ fare: r = -0.5482
+  2) sibsp ~ parch: r = +0.4145
+[chart] correlation_heatmap.png -> C:\Users\Hello\Downloads\Masai\analytics\charts
+
+==============================================================================
+TASK 5 - MULTIVARIATE DATA STORY (4+ charts with interpretations)
+==============================================================================
+[chart1] survival_by_sex.png
+INTERPRETATION: Women survived at 74.0% versus 18.9% for men - a gap of over 45 percentage points. This reflects the 'women and children first' evacuation policy enforced by the crew. Sex is therefore the single most visually striking separator of survival in the data.
+
+[chart2] survival_by_class.png
+INTERPRETATION: Survival falls monotonically with class: 1st class 62.6%, 2nd class 47.3%, 3rd class 24.2%. Passengers in higher classes had cabins closer to the boat deck and were prioritised during loading. Socio-economic status is thus a strong, ordered predictor of survival.
+
+[chart3] fare_class_survival.png
+INTERPRETATION: Within every class, survivors paid higher fares than victims - the green (survived) boxes sit above the blue ones. The effect is strongest in 1st class, where the survivor median fare is several times the victim median. This shows fare acts as a within-class wealth proxy on top of the class effect itself.
+
+[chart4] age_fare_scatter.png
+INTERPRETATION: The top-right corner (old and expensive) is dominated by green points, while the dense low-fare cloud at the bottom is mostly blue. Children cluster green as well, consistent with 'women and children first'. Higher fare buys survival odds at any age, and extreme fares only occur in the upper classes.
+
+[chart5] sex_class_heatmap.png
+INTERPRETATION: The cell for 1st-class women is essentially 97% survival, while 3rd-class men sit at only 14%. The two factors compound: being a woman helps in every class, and being in 1st class helps in both sexes. Together they explain most of the survival structure the bar charts show separately.
+
+[data story] 5 charts saved -> CHARTS/
+
+==============================================================================
+TASK 6 - EXPLORATORY Z-SCORE STANDARDIZATION (age & fare)
+==============================================================================
+z = (x - mean) / std   computed on the FULL cleaned frame.
+EDA-stage sanity check ONLY - it does NOT feed the modeling pipeline,
+which performs its own train-only scaling.
+
+BEFORE:
+  age: mean = 29.315152, std = 12.984932
+  fare: mean = 32.096681, std = 49.697504
+
+AFTER z-score (z_age, z_fare):
+  age_z: mean = 0.000000, std = 1.000000
+  fare_z: mean = 0.000000, std = 1.000000
+
+StandardScaler cross-check: age_z mean=0.000000 std=1.000000; fare_z mean=0.000000 std=1.000000
+(pandas .std() is sample std ddof=1, StandardScaler uses ddof=0 - both ~0 / ~1.)
+[chart] standardization_before_after.png -> C:\Users\Hello\Downloads\Masai\analytics\charts
+Both transformed columns have (approximately) mean 0 and standard deviation 1 - CONFIRMED above.

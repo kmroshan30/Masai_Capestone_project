@@ -1,0 +1,5 @@
+model,metric_group,accuracy,precision,recall,f1,auc,mae,rmse,r2,adj_r2
+Logistic Regression,classification (target: survived),0.8045,0.7931,0.6667,0.7244,0.8437,,,,
+Decision Tree,classification (target: survived),0.8156,0.7903,0.7101,0.7481,0.7904,,,,
+Random Forest,classification (target: survived),0.8156,0.8,0.6957,0.7442,0.83,,,,
+Linear Regression,regression (target: fare),,,,,,20.8094,30.4731,0.3999,0.3679
