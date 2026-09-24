@@ -1,0 +1,197 @@
+==============================================================================
+Q1 - SELECT/WHERE: in-stock books rated 4 or 5
+------------------------------------------------------------------------------
+SELECT title, price_gbp, rating, in_stock
+        FROM books
+        WHERE in_stock = 1 AND rating >= 4
+        ORDER BY rating DESC, price_gbp DESC
+        LIMIT 10;
+
+                                                                                                                              title  price_gbp  rating  in_stock
+                                                                                                                   Digital Fortress      58.00       5         1
+                                                               Immunity: How Elie Metchnikoff Changed the Course of Modern Medicine      57.36       5         1
+The Disappearing Spoon: And Other True Tales of Madness, Love, and the History of the World from the Periodic Table of the Elements      57.35       5         1
+                                                                                                      Kitchens of the Great Midwest      57.20       5         1
+                                                                                              Sapiens: A Brief History of Humankind      54.23       5         1
+                                                                                           Finders Keepers (Bill Hodges Trilogy #2)      53.53       5         1
+                                                                                                               The Husband's Secret      52.51       5         1
+                                                                                               A Short History of Nearly Everything      52.40       5         1
+                                                           The Bachelor Girl's Guide to Murder (Herringford and Watts Mysteries #1)      52.30       5         1
+                                                                                               The Regional Office Is Under Attack!      51.36       5         1
+
+(10 rows)
+
+==============================================================================
+Q2 - ORDER BY + LIMIT: 10 most expensive books (GBP)
+------------------------------------------------------------------------------
+SELECT title, price_gbp, price_inr, rating
+        FROM books
+        ORDER BY price_gbp DESC
+        LIMIT 10;
+
+                                                                                    title  price_gbp  price_inr  rating
+                                                        Last One Home (New Beginnings #1)      59.98    6327.89       3
+Thomas Jefferson and the Tripoli Pirates: The Forgotten War That Changed American History      59.64    6292.02       1
+                                                            Boar Island (Anna Pigeon #19)      59.48    6275.14       3
+                                                                The Improbability of Love      59.45    6271.98       1
+                                                                                  Candide      58.63    6185.46       3
+                                                 Catherine the Great: Portrait of a Woman      58.55    6177.02       4
+                                                                          Miller's Valley      58.54    6175.97       2
+                                                                         Digital Fortress      58.00    6119.00       5
+                   The No. 1 Ladies' Detective Agency (No. 1 Ladies' Detective Agency #1)      57.70    6087.35       4
+                     Immunity: How Elie Metchnikoff Changed the Course of Modern Medicine      57.36    6051.48       5
+
+(10 rows)
+
+==============================================================================
+Q3 - DISTINCT: distinct ratings present in the catalogue
+------------------------------------------------------------------------------
+SELECT DISTINCT rating
+        FROM books
+        ORDER BY rating;
+
+ rating
+      1
+      2
+      3
+      4
+      5
+
+(5 rows)
+
+==============================================================================
+Q4 - IN + BETWEEN: price band within a set of categories
+------------------------------------------------------------------------------
+SELECT title, price_gbp, rating, category_id
+        FROM books
+        WHERE price_gbp BETWEEN 10.0 AND 30.0
+          AND category_id IN (SELECT category_id FROM categories
+                              WHERE category_name IN ('Travel', 'Mystery'))
+        ORDER BY price_gbp;
+
+                                                                                            title  price_gbp  rating  category_id
+                                                             Tastes Like Fear (DI Marnie Rome #3)      10.69       1            4
+                                                                       Hide Away (Eve Duncan #20)      11.84       1            4
+                                                                                The Girl You Lost      12.29       5            4
+                                                                                Playing with Fire      13.71       3            4
+                                                           That Darkness (Gardiner and Renner #1)      13.92       1            4
+                                                        The Girl In The Ice (DCI Erika Foster #1)      15.85       3            4
+                                                                                 A Murder in Time      16.64       1            4
+                                                          A Study in Scarlet (Sherlock Holmes #1)      16.73       2            4
+                                                        The Cuckoo's Calling (Cormoran Strike #1)      19.21       1            4
+                                                                             In a Dark, Dark Wood      19.63       1            4
+                                                             Blood Defense (Samantha Brinkman #1)      20.30       3            4
+                                                 Delivering the Truth (Quaker Midwife Mystery #1)      20.89       4            4
+                                                                The Silkworm (Cormoran Strike #2)      23.05       5            4
+The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)      23.21       1            6
+                                                              Career of Evil (Cormoran Strike #3)      24.72       2            4
+                                              The Mysterious Affair at Styles (Hercule Poirot #1)      24.80       4            4
+                                What Happened on Beale Street (Secrets of the South Mysteries #2)      25.37       5            4
+                                                               Extreme Prey (Lucas Davenport #26)      25.40       3            4
+                                                               1,000 Places to See Before You Die      26.08       5            6
+                                                                 Poisonous (Max Revere Novels #3)      26.80       3            4
+                                                                                        The Widow      27.26       2            4
+
+(21 rows)
+
+==============================================================================
+Q5 - JOIN: 10 highest-rated books per category (via window fn)
+------------------------------------------------------------------------------
+SELECT category_name, title, price_gbp, rating
+        FROM (
+            SELECT c.category_name, b.title, b.price_gbp, b.rating,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY b.category_id
+                       ORDER BY b.rating DESC, b.price_gbp DESC, b.title
+                   ) AS rn
+            FROM books b
+            JOIN categories c ON c.category_id = b.category_id
+        )
+        WHERE rn <= 10
+        ORDER BY category_name, rn;
+
+category_name                                                                                                                               title  price_gbp  rating
+     Classics                                                                                                           The Story of Hong Gildong      43.19       4
+     Classics                                                                                                      Little Women (Little Women #1)      28.07       4
+     Classics                                                       The Complete Stories and Poems (The Works of Edgar Allan Poe [Cameo Edition])      26.78       4
+     Classics                                                                                                                   The Secret Garden      15.08       4
+     Classics                                                                                                                             Candide      58.63       3
+     Classics                                                                                                                         Animal Farm      57.22       3
+     Classics                                                                                                                  Gone with the Wind      32.49       3
+     Classics                                                                                                                   Wuthering Heights      17.73       3
+     Classics                                                                                                              The Pilgrim's Progress      50.26       2
+     Classics                                                                                                                     Of Mice and Men      47.11       2
+      Fiction                                                                                                                    Digital Fortress      58.00       5
+      Fiction                                                                                                       Kitchens of the Great Midwest      57.20       5
+      Fiction                                                                                            Finders Keepers (Bill Hodges Trilogy #2)      53.53       5
+      Fiction                                                                                                                The Husband's Secret      52.51       5
+      Fiction                                                                                                The Regional Office Is Under Attack!      51.36       5
+      Fiction                                                                                                        We Love You, Charlie Freeman      50.27       5
+      Fiction                                                                                            Crazy Rich Asians (Crazy Rich Asians #1)      49.13       5
+      Fiction                                                                                                         Private Paris (Private #10)      47.61       5
+      Fiction                                                                                             The Silent Sister (Riley MacPherson #1)      46.29       5
+      Fiction                                                                                                         Inferno (Robert Langdon #4)      41.00       5
+      History                                                                                               Sapiens: A Brief History of Humankind      54.23       5
+      History                                                                                                A Short History of Nearly Everything      52.40       5
+      History                                                "Most Blessed of the Patriarchs": Thomas Jefferson and the Empire of the Imagination      44.48       5
+      History                                                                The Mathews Men: Seven Brothers and the War Against Hitler's U-boats      42.91       5
+      History                                                                                            Catherine the Great: Portrait of a Woman      58.55       4
+      History                                                                                                                    The Hiding Place      55.91       4
+      History                                                                                     Zealot: The Life and Times of Jesus of Nazareth      24.70       3
+      History                                                                               1491: New Revelations of the Americas Before Columbus      21.80       3
+      History                                                                                       A Distant Mirror: The Calamitous 14th Century      14.58       3
+      History                                                                             Brilliant Beacons: A History of the American Lighthouse      11.45       3
+      Mystery                                                            The Bachelor Girl's Guide to Murder (Herringford and Watts Mysteries #1)      52.30       5
+      Mystery                                                                                              A Time of Torment (Charlie Parker #14)      48.35       5
+      Mystery                                                                   What Happened on Beale Street (Secrets of the South Mysteries #2)      25.37       5
+      Mystery                                                                                                   The Silkworm (Cormoran Strike #2)      23.05       5
+      Mystery                                                                                                                   The Girl You Lost      12.29       5
+      Mystery                                                              The No. 1 Ladies' Detective Agency (No. 1 Ladies' Detective Agency #1)      57.70       4
+      Mystery                                                                                                                 The Past Never Ends      56.50       4
+      Mystery                                                                               Murder at the 42nd Street Library (Raymond Ambler #1)      54.36       4
+      Mystery                                                                                                                       Sharp Objects      47.82       4
+      Mystery                                                                                     The Murder of Roger Ackroyd (Hercule Poirot #4)      44.10       4
+      Science                                                                Immunity: How Elie Metchnikoff Changed the Course of Modern Medicine      57.36       5
+      Science The Disappearing Spoon: And Other True Tales of Madness, Love, and the History of the World from the Periodic Table of the Elements      57.35       5
+      Science                                                                 Sorting the Beef from the Bull: The Science of Food Fraud Forensics      44.74       4
+      Science                                                                           The Most Perfect Thing: Inside (and Outside) a Bird's Egg      42.96       4
+      Science                                                                                                      Seven Brief Lessons on Physics      30.60       4
+      Science                                        The Elegant Universe: Superstrings, Hidden Dimensions, and the Quest for the Ultimate Theory      13.03       4
+      Science                                                                                                               The Origin of Species      10.01       4
+      Science                                                                                                                    The Grand Design      13.76       3
+      Science                                                               Surely You're Joking, Mr. Feynman!: Adventures of a Curious Character      25.83       2
+      Science                                                                                     Peak: Secrets from the New Science of Expertise      16.28       2
+       Travel                                                                                                  1,000 Places to See Before You Die      26.08       5
+       Travel                                                                                                    A Year in Provence (Provence #1)      56.88       4
+       Travel                                                                  Full Moon over Noahâs Ark: An Odyssey to Mount Ararat and Beyond      49.43       4
+       Travel                                                                  See America: A Celebration of Our National Parks & Treasured Sites      48.87       3
+       Travel                                                                                           Neither Here nor There: Travels in Europe      38.95       3
+       Travel                                                                                                                Under the Tuscan Sun      37.33       3
+       Travel                                                                                                             It's Only the Himalayas      45.17       2
+       Travel                                                                                                                  A Summer In Europe      44.34       2
+       Travel                                                                 Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel      36.94       2
+       Travel                                                                                                            The Great Railway Bazaar      30.54       1
+
+(60 rows)
+
+==============================================================================
+Q6 - JOIN (simple, aggregate): avg price + book count per category
+------------------------------------------------------------------------------
+SELECT c.category_name,
+               COUNT(*)          AS book_count,
+               ROUND(AVG(b.price_gbp), 4) AS avg_price_gbp,
+               ROUND(AVG(b.price_inr), 2) AS avg_price_inr
+        FROM categories c
+        JOIN books b ON b.category_id = c.category_id
+        GROUP BY c.category_id
+        ORDER BY book_count DESC;
+
+category_name  book_count  avg_price_gbp  avg_price_inr
+      Fiction          65        36.0666        3805.03
+      Mystery          32        31.7191        3346.36
+     Classics          19        36.5453        3855.53
+      History          18        37.2950        3934.62
+      Science          14        33.0886        3490.84
+       Travel          11        39.7945        4198.32
+
+(6 rows)

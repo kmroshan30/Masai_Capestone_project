@@ -1,0 +1,146 @@
+Q5 JOIN: read_sql vs pd.merge identical = True
+Q6 AGG:  read_sql vs pd.merge identical = True
+
+--- Q5 via read_sql ---
+category_name                                                                                                                               title  price_gbp  rating
+     Classics                                                                                                           The Story of Hong Gildong      43.19       4
+     Classics                                                                                                      Little Women (Little Women #1)      28.07       4
+     Classics                                                       The Complete Stories and Poems (The Works of Edgar Allan Poe [Cameo Edition])      26.78       4
+     Classics                                                                                                                   The Secret Garden      15.08       4
+     Classics                                                                                                                             Candide      58.63       3
+     Classics                                                                                                                         Animal Farm      57.22       3
+     Classics                                                                                                                  Gone with the Wind      32.49       3
+     Classics                                                                                                                   Wuthering Heights      17.73       3
+     Classics                                                                                                              The Pilgrim's Progress      50.26       2
+     Classics                                                                                                                     Of Mice and Men      47.11       2
+      Fiction                                                                                                                    Digital Fortress      58.00       5
+      Fiction                                                                                                       Kitchens of the Great Midwest      57.20       5
+      Fiction                                                                                            Finders Keepers (Bill Hodges Trilogy #2)      53.53       5
+      Fiction                                                                                                                The Husband's Secret      52.51       5
+      Fiction                                                                                                The Regional Office Is Under Attack!      51.36       5
+      Fiction                                                                                                        We Love You, Charlie Freeman      50.27       5
+      Fiction                                                                                            Crazy Rich Asians (Crazy Rich Asians #1)      49.13       5
+      Fiction                                                                                                         Private Paris (Private #10)      47.61       5
+      Fiction                                                                                             The Silent Sister (Riley MacPherson #1)      46.29       5
+      Fiction                                                                                                         Inferno (Robert Langdon #4)      41.00       5
+      History                                                                                               Sapiens: A Brief History of Humankind      54.23       5
+      History                                                                                                A Short History of Nearly Everything      52.40       5
+      History                                                "Most Blessed of the Patriarchs": Thomas Jefferson and the Empire of the Imagination      44.48       5
+      History                                                                The Mathews Men: Seven Brothers and the War Against Hitler's U-boats      42.91       5
+      History                                                                                            Catherine the Great: Portrait of a Woman      58.55       4
+      History                                                                                                                    The Hiding Place      55.91       4
+      History                                                                                     Zealot: The Life and Times of Jesus of Nazareth      24.70       3
+      History                                                                               1491: New Revelations of the Americas Before Columbus      21.80       3
+      History                                                                                       A Distant Mirror: The Calamitous 14th Century      14.58       3
+      History                                                                             Brilliant Beacons: A History of the American Lighthouse      11.45       3
+      Mystery                                                            The Bachelor Girl's Guide to Murder (Herringford and Watts Mysteries #1)      52.30       5
+      Mystery                                                                                              A Time of Torment (Charlie Parker #14)      48.35       5
+      Mystery                                                                   What Happened on Beale Street (Secrets of the South Mysteries #2)      25.37       5
+      Mystery                                                                                                   The Silkworm (Cormoran Strike #2)      23.05       5
+      Mystery                                                                                                                   The Girl You Lost      12.29       5
+      Mystery                                                              The No. 1 Ladies' Detective Agency (No. 1 Ladies' Detective Agency #1)      57.70       4
+      Mystery                                                                                                                 The Past Never Ends      56.50       4
+      Mystery                                                                               Murder at the 42nd Street Library (Raymond Ambler #1)      54.36       4
+      Mystery                                                                                                                       Sharp Objects      47.82       4
+      Mystery                                                                                     The Murder of Roger Ackroyd (Hercule Poirot #4)      44.10       4
+      Science                                                                Immunity: How Elie Metchnikoff Changed the Course of Modern Medicine      57.36       5
+      Science The Disappearing Spoon: And Other True Tales of Madness, Love, and the History of the World from the Periodic Table of the Elements      57.35       5
+      Science                                                                 Sorting the Beef from the Bull: The Science of Food Fraud Forensics      44.74       4
+      Science                                                                           The Most Perfect Thing: Inside (and Outside) a Bird's Egg      42.96       4
+      Science                                                                                                      Seven Brief Lessons on Physics      30.60       4
+      Science                                        The Elegant Universe: Superstrings, Hidden Dimensions, and the Quest for the Ultimate Theory      13.03       4
+      Science                                                                                                               The Origin of Species      10.01       4
+      Science                                                                                                                    The Grand Design      13.76       3
+      Science                                                               Surely You're Joking, Mr. Feynman!: Adventures of a Curious Character      25.83       2
+      Science                                                                                     Peak: Secrets from the New Science of Expertise      16.28       2
+       Travel                                                                                                  1,000 Places to See Before You Die      26.08       5
+       Travel                                                                                                    A Year in Provence (Provence #1)      56.88       4
+       Travel                                                                  Full Moon over Noahâs Ark: An Odyssey to Mount Ararat and Beyond      49.43       4
+       Travel                                                                  See America: A Celebration of Our National Parks & Treasured Sites      48.87       3
+       Travel                                                                                           Neither Here nor There: Travels in Europe      38.95       3
+       Travel                                                                                                                Under the Tuscan Sun      37.33       3
+       Travel                                                                                                             It's Only the Himalayas      45.17       2
+       Travel                                                                                                                  A Summer In Europe      44.34       2
+       Travel                                                                 Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel      36.94       2
+       Travel                                                                                                            The Great Railway Bazaar      30.54       1
+
+--- Q5 via merge ---
+category_name                                                                                                                               title  price_gbp  rating
+     Classics                                                                                                           The Story of Hong Gildong      43.19       4
+     Classics                                                                                                      Little Women (Little Women #1)      28.07       4
+     Classics                                                       The Complete Stories and Poems (The Works of Edgar Allan Poe [Cameo Edition])      26.78       4
+     Classics                                                                                                                   The Secret Garden      15.08       4
+     Classics                                                                                                                             Candide      58.63       3
+     Classics                                                                                                                         Animal Farm      57.22       3
+     Classics                                                                                                                  Gone with the Wind      32.49       3
+     Classics                                                                                                                   Wuthering Heights      17.73       3
+     Classics                                                                                                              The Pilgrim's Progress      50.26       2
+     Classics                                                                                                                     Of Mice and Men      47.11       2
+      Fiction                                                                                                                    Digital Fortress      58.00       5
+      Fiction                                                                                                       Kitchens of the Great Midwest      57.20       5
+      Fiction                                                                                            Finders Keepers (Bill Hodges Trilogy #2)      53.53       5
+      Fiction                                                                                                                The Husband's Secret      52.51       5
+      Fiction                                                                                                The Regional Office Is Under Attack!      51.36       5
+      Fiction                                                                                                        We Love You, Charlie Freeman      50.27       5
+      Fiction                                                                                            Crazy Rich Asians (Crazy Rich Asians #1)      49.13       5
+      Fiction                                                                                                         Private Paris (Private #10)      47.61       5
+      Fiction                                                                                             The Silent Sister (Riley MacPherson #1)      46.29       5
+      Fiction                                                                                                         Inferno (Robert Langdon #4)      41.00       5
+      History                                                                                               Sapiens: A Brief History of Humankind      54.23       5
+      History                                                                                                A Short History of Nearly Everything      52.40       5
+      History                                                "Most Blessed of the Patriarchs": Thomas Jefferson and the Empire of the Imagination      44.48       5
+      History                                                                The Mathews Men: Seven Brothers and the War Against Hitler's U-boats      42.91       5
+      History                                                                                            Catherine the Great: Portrait of a Woman      58.55       4
+      History                                                                                                                    The Hiding Place      55.91       4
+      History                                                                                     Zealot: The Life and Times of Jesus of Nazareth      24.70       3
+      History                                                                               1491: New Revelations of the Americas Before Columbus      21.80       3
+      History                                                                                       A Distant Mirror: The Calamitous 14th Century      14.58       3
+      History                                                                             Brilliant Beacons: A History of the American Lighthouse      11.45       3
+      Mystery                                                            The Bachelor Girl's Guide to Murder (Herringford and Watts Mysteries #1)      52.30       5
+      Mystery                                                                                              A Time of Torment (Charlie Parker #14)      48.35       5
+      Mystery                                                                   What Happened on Beale Street (Secrets of the South Mysteries #2)      25.37       5
+      Mystery                                                                                                   The Silkworm (Cormoran Strike #2)      23.05       5
+      Mystery                                                                                                                   The Girl You Lost      12.29       5
+      Mystery                                                              The No. 1 Ladies' Detective Agency (No. 1 Ladies' Detective Agency #1)      57.70       4
+      Mystery                                                                                                                 The Past Never Ends      56.50       4
+      Mystery                                                                               Murder at the 42nd Street Library (Raymond Ambler #1)      54.36       4
+      Mystery                                                                                                                       Sharp Objects      47.82       4
+      Mystery                                                                                     The Murder of Roger Ackroyd (Hercule Poirot #4)      44.10       4
+      Science                                                                Immunity: How Elie Metchnikoff Changed the Course of Modern Medicine      57.36       5
+      Science The Disappearing Spoon: And Other True Tales of Madness, Love, and the History of the World from the Periodic Table of the Elements      57.35       5
+      Science                                                                 Sorting the Beef from the Bull: The Science of Food Fraud Forensics      44.74       4
+      Science                                                                           The Most Perfect Thing: Inside (and Outside) a Bird's Egg      42.96       4
+      Science                                                                                                      Seven Brief Lessons on Physics      30.60       4
+      Science                                        The Elegant Universe: Superstrings, Hidden Dimensions, and the Quest for the Ultimate Theory      13.03       4
+      Science                                                                                                               The Origin of Species      10.01       4
+      Science                                                                                                                    The Grand Design      13.76       3
+      Science                                                               Surely You're Joking, Mr. Feynman!: Adventures of a Curious Character      25.83       2
+      Science                                                                                     Peak: Secrets from the New Science of Expertise      16.28       2
+       Travel                                                                                                  1,000 Places to See Before You Die      26.08       5
+       Travel                                                                                                    A Year in Provence (Provence #1)      56.88       4
+       Travel                                                                  Full Moon over Noahâs Ark: An Odyssey to Mount Ararat and Beyond      49.43       4
+       Travel                                                                  See America: A Celebration of Our National Parks & Treasured Sites      48.87       3
+       Travel                                                                                           Neither Here nor There: Travels in Europe      38.95       3
+       Travel                                                                                                                Under the Tuscan Sun      37.33       3
+       Travel                                                                                                             It's Only the Himalayas      45.17       2
+       Travel                                                                                                                  A Summer In Europe      44.34       2
+       Travel                                                                 Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel      36.94       2
+       Travel                                                                                                            The Great Railway Bazaar      30.54       1
+
+--- Q6 via read_sql ---
+category_name  book_count  avg_price_gbp  avg_price_inr
+      Fiction          65        36.0666        3805.03
+      Mystery          32        31.7191        3346.36
+     Classics          19        36.5453        3855.53
+      History          18        37.2950        3934.62
+      Science          14        33.0886        3490.84
+       Travel          11        39.7945        4198.32
+
+--- Q6 via merge ---
+category_name  book_count  avg_price_gbp  avg_price_inr
+      Fiction          65        36.0666        3805.03
+      Mystery          32        31.7191        3346.36
+     Classics          19        36.5453        3855.53
+      History          18        37.2950        3934.62
+      Science          14        33.0886        3490.84
+       Travel          11        39.7945        4198.32
